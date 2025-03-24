@@ -23,10 +23,6 @@ namespace SituatiiUrgenta
                 urgente[nrUrgente] = urgenta;
                 nrUrgente++;
             }
-            //else
-            //{
-            //    Console.WriteLine("Nu mai este loc pentru alte urgente.");
-            //}
         }
 
         public Urgente[] GetUrgente(out int nrUrgente)

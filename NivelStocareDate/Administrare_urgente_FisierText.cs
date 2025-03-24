@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using LibrarieModele;
 
-namespace SOSUrgente
+namespace NivelStocareDate
 {
     public class Administrare_urgente_FisierText
     {
@@ -66,7 +66,7 @@ namespace SOSUrgente
             }
             catch
             {
-                // Se returnează lista goală în caz de eroare
+               
             }
 
             return urgente;
@@ -76,8 +76,7 @@ namespace SOSUrgente
         {
             int idMax = 0;
 
-            try
-            {
+            
                 if (File.Exists(numeFisier))
                 {
                     string[] linii = File.ReadAllLines(numeFisier);
@@ -92,11 +91,6 @@ namespace SOSUrgente
                             }
                         }
                     }
-                }
-            }
-            catch
-            {
-                // Se returnează 0 în caz de eroare
             }
 
             return idMax;

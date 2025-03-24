@@ -23,9 +23,9 @@ namespace NivelStocareDate
             {
                 angajati[nrAngajati] = angajat;
                 nrAngajati++;
-                return true; // Succes
+                return true;
             }
-            return false; // Eșec (limita atinsă)
+            return false; 
         }
 
         public Angajat[] GetAngajati(out int nrAngajati)

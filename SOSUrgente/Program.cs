@@ -11,6 +11,7 @@ namespace SOSUrgente
 {
     class Program
     {
+
         static void Main()
         {
             List<Angajat> angajati = Administrare_angajati_FisierText.CitesteAngajatiDinFisier();
@@ -61,19 +62,35 @@ namespace SOSUrgente
                         string email = Console.ReadLine();
                         Console.Write("Introduceti vechime: ");
                         int vechime = Convert.ToInt32(Console.ReadLine());
-                        Angajat angajat = new Angajat(nume,dataNasterii, profesie, vechime, email);
-                        //Console.Write("Introduceti salariul: ");
-                        //if (double.TryParse(Console.ReadLine(), out double salariu))
-                        //{
-                        //    Angajat angajat = new Angajat(nume, profesie);
-                        //    bool adaugat = admin.AdaugaAngajat(angajati);
-                        //    Console.WriteLine(adaugat ? "Angajat adaugat cu succes!" : "Eroare: Lista este plina!");
-                        //}
-                        //else
-                        //{
-                        //    Console.WriteLine("Salariul trebuie sa fie un numar valid.");
-                        //}
+                        Console.WriteLine("Alegeti statutul angajatului:");
+                        Console.WriteLine("1. Subofiter");
+                        Console.WriteLine("2. Ofiter");
+                        Console.WriteLine("3. Pensionar");
+                        Console.WriteLine("4. Personal Administrativ");
+                        StatutAngajat statutAngajat = StatutAngajat.Subofiter; // Default
+                        string alegereStatut = Console.ReadLine();
+                        switch (alegereStatut)
+                        {
+                            case "1":
+                                statutAngajat = StatutAngajat.Subofiter;
+                                break;
+                            case "2":
+                                statutAngajat = StatutAngajat.Ofiter;
+                                break;
+                            case "3":
+                                statutAngajat = StatutAngajat.Pensionar;
+                                break;
+                            case "4":
+                                statutAngajat = StatutAngajat.PersonalAdministrativ;
+                                break;
+                            default:
+                                Console.WriteLine("Statut invalid. Folosim statutul default (Subofiter).");
+                                break;
+                        }
+
+                        Angajat angajat = new Angajat(nume, dataNasterii, profesie, vechime, email, statutAngajat);
                         bool adaugat = adminMemorieAngajati.AddAngajat(angajat);
+                        angajati.Add(angajat);
                         Console.WriteLine(adaugat ? "Angajat adaugat cu succes!" : "Eroare: Lista este plina!");
                         break;
 
@@ -96,10 +113,15 @@ namespace SOSUrgente
                         break;
 
                     case "4":
-                        Administrare_angajati_FisierText.ScrieAngajatiInFisier(angajati);
-                        Console.WriteLine("Angajatii au fost salvati in fisier.");
+                        if (Administrare_angajati_FisierText.ScrieAngajatiInFisier(angajati))
+                        {
+                            Console.WriteLine("Angajatii au fost salvati in fisier cu succes.");
+                        }
+                        else
+                        {
+                            //Console.WriteLine("Eroare la salvarea angajatilor în fisier.");
+                        }
                         break;
-
                     case "5":
                         Console.Write("Introduceti orasul: ");
                         string oras = Console.ReadLine();
@@ -108,9 +130,29 @@ namespace SOSUrgente
                         string strada = Console.ReadLine();
 
                         Console.Write("Introduceti numarul: ");
+                        TipUrgente tipUrgente = TipUrgente.Accident; 
+                        string alegereTipurgente = Console.ReadLine();
+                        switch (alegereTipurgente)
+                        {
+                            case "1":
+                                tipUrgente = TipUrgente.Accident;
+                                break;
+                            case "2":
+                                tipUrgente = TipUrgente.Incendiu;
+                                break;
+                            case "3":
+                                tipUrgente = TipUrgente.Inundatie;
+                                break;
+                            case "4":
+                                tipUrgente = TipUrgente.Criminalitate;
+                                break;
+                            default:
+                                Console.WriteLine("Statut invalid. Folosim statutul default (Subofiter).");
+                                break;
+                        }
                         if (int.TryParse(Console.ReadLine(), out int numar))
                         {
-                            Urgente urgenta = new Urgente(oras, strada, numar);
+                            Urgente urgenta = new Urgente(oras, strada, numar, tipUrgente);
                             urgente.Add(urgenta);
                             Console.WriteLine("Urgenta a fost adaugata.");
                         }

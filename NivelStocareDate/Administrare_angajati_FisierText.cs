@@ -16,11 +16,20 @@ namespace NivelStocareDate
         public Administrare_angajati_FisierText(string numeFisier)
         {
             this.numeFisier = numeFisier;
-            if (!File.Exists(numeFisier))
+            try
             {
-                File.Create(numeFisier).Close();
+                if (!File.Exists(numeFisier))
+                {
+                    File.Create(numeFisier).Close();
+                    Console.WriteLine($"Fișier creat: {numeFisier}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la crearea fisierului: {ex.Message}");
             }
         }
+
 
         public bool AdaugaAngajat(Angajat angajat)
         {
@@ -30,13 +39,16 @@ namespace NivelStocareDate
                 {
                     writer.WriteLine(angajat.Info());
                 }
+                Console.WriteLine($"Angajat adăugat: {angajat.Info()}");
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Eroare la scriere: {ex.Message}");
                 return false;
             }
         }
+
 
         public Angajat[] GetAngajati(out int nrAngajati)
         {
@@ -61,7 +73,7 @@ namespace NivelStocareDate
             }
             catch
             {
-                // Se returnează lista goală dacă apare o eroare
+               
             }
 
             return angajati;
@@ -91,7 +103,7 @@ namespace NivelStocareDate
             }
             catch
             {
-                // În caz de eroare, returnăm 0
+               
             }
 
             return idMax;
@@ -120,23 +132,31 @@ namespace NivelStocareDate
             {
                 if (angajati.Count > 0)
                 {
-                    File.WriteAllLines(FisierAngajati, angajati.Select(a => a.Info()));
+                    using (StreamWriter writer = new StreamWriter(FisierAngajati, false))
+                    {
+                        foreach (var angajat in angajati)
+                        {
+                            writer.WriteLine(angajat.Info());
+                        }
+                    }
                     return true;
                 }
-            }
-            catch
-            {
                 return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la scrierea în fișier: {ex.Message}");
+                return false;
+            }
         }
 
-        public static Angajat CreeazaAngajat(string nume, string dataNasteriiStr, string profesie, int vechime, string email)
+
+
+        public static Angajat CreeazaAngajat(string nume, string dataNasteriiStr, string profesie, int vechime, string email, string StatutAngajat)
         {
             if (DateTime.TryParseExact(dataNasteriiStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dataNasterii))
             {
-                return new Angajat(nume, dataNasterii, profesie, vechime, email);
+                return new Angajat(nume, dataNasterii, profesie, vechime, email, StatutAngajat);
             }
             return null;
         }
