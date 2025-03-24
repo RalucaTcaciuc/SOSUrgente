@@ -145,18 +145,27 @@ namespace NivelStocareDate
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Eroare la scrierea în fișier: {ex.Message}");
+                Console.WriteLine($"Eroare la scrierea în fisier: {ex.Message}");
                 return false;
             }
         }
 
 
 
-        public static Angajat CreeazaAngajat(string nume, string dataNasteriiStr, string profesie, int vechime, string email, string StatutAngajat)
+        public static Angajat CreeazaAngajat(string nume, string dataNasteriiStr, string profesie, int vechime, string email, string statut)
         {
             if (DateTime.TryParseExact(dataNasteriiStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dataNasterii))
             {
-                return new Angajat(nume, dataNasterii, profesie, vechime, email, StatutAngajat);
+                // Convertire string → enum
+                if (Enum.TryParse(statut, true, out StatutAngajat statutAngajat))
+                {
+                    return new Angajat(nume, dataNasterii, profesie, vechime, email, statutAngajat);
+                }
+                else
+                {
+                    Console.WriteLine("Statut invalid. Se folosește statutul default (Subofiter).");
+                    return new Angajat(nume, dataNasterii, profesie, vechime, email, StatutAngajat.Subofiter);
+                }
             }
             return null;
         }

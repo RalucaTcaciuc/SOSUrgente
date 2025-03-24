@@ -62,7 +62,13 @@ namespace LibrarieModele
             if (parts.Length != 6) return null; 
 
             string nume = parts[0];
-            DateTime dataNasterii = DateTime.ParseExact(parts[1], "dd/MM/yyyy", null);
+            string[] formatePosibile = { "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd" };
+            if (!DateTime.TryParseExact(parts[1].Trim(), formatePosibile, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dataNasterii))
+            {
+                Console.WriteLine($"Eroare: Data '{parts[1]}' nu este într-un format valid.");
+                return null;
+            }
+
             string profesie = parts[2];
             int vechime = int.Parse(parts[3]);
             string email = parts[4];

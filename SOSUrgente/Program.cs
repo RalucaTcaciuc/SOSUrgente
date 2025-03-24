@@ -128,10 +128,28 @@ namespace SOSUrgente
 
                         Console.Write("Introduceti strada: ");
                         string strada = Console.ReadLine();
+                        int numar;
+                        while (true)
+                        {
+                            Console.Write("Introduceti numarul: ");
+                            string inputNumar = Console.ReadLine();
+                            if (int.TryParse(inputNumar, out numar))
+                            {
+                                break;
+                            }
+                            Console.WriteLine("Numarul trebuie sa fie un numar valid.");
+                        }
+                        TipUrgente tipUrgente = TipUrgente.Accident;
 
-                        Console.Write("Introduceti numarul: ");
-                        TipUrgente tipUrgente = TipUrgente.Accident; 
+                        Console.WriteLine("Alegeti tipul urgentei:");
+                        Console.WriteLine("1. Accident");
+                        Console.WriteLine("2. Incendiu");
+                        Console.WriteLine("3. Inundatie");
+                        Console.WriteLine("4. Criminalitate");
+
                         string alegereTipurgente = Console.ReadLine();
+
+                       
                         switch (alegereTipurgente)
                         {
                             case "1":
@@ -147,19 +165,16 @@ namespace SOSUrgente
                                 tipUrgente = TipUrgente.Criminalitate;
                                 break;
                             default:
-                                Console.WriteLine("Statut invalid. Folosim statutul default (Subofiter).");
+                                Console.WriteLine("Opțiune invalidă. Se va folosi valoarea implicită: Accident.");
                                 break;
                         }
-                        if (int.TryParse(Console.ReadLine(), out int numar))
-                        {
-                            Urgente urgenta = new Urgente(oras, strada, numar, tipUrgente);
-                            urgente.Add(urgenta);
-                            Console.WriteLine("Urgenta a fost adaugata.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Numarul trebuie sa fie un numar valid.");
-                        }
+
+                    
+                        Console.WriteLine($"Urgenta de tip: {tipUrgente}");
+
+                        Urgente urgenta = new Urgente(oras, strada, numar, tipUrgente);
+                        urgente.Add(urgenta);
+                        Console.WriteLine("Urgenta a fost adaugata.");
                         break;
 
                     case "6":
