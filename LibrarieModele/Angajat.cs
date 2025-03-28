@@ -14,12 +14,12 @@ namespace LibrarieModele
 
     public class Angajat : Persoana
     {
-        private string profesie;
-        private int vechime;
-        private string email;
+        public string profesie { get; set; }
+        public int vechime { get; set; }
+        public string email { get; set; }
         public StatutAngajat statut;
+  
 
-    
         public Angajat() : base()
         {
             profesie = string.Empty;

@@ -4,8 +4,8 @@ namespace LibrarieModele
 {
     public class Persoana
     {
-        string nume { get; set; }
-        DateTime dataNasterii { get; set; }
+        public string nume { get; set; }
+        public DateTime dataNasterii { get; set; }
 
         public Persoana()
         {
