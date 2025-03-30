@@ -14,6 +14,7 @@ namespace InterfataUtilizator_WindowsForms
     {
         private Administrare_angajati_FisierText adminAngajati;
         private string caleFisier;
+        private Panel panelFundal; // Added panel reference
 
         private Label lblTitlu;
         private Label lblNume, lblProfesie, lblVechime, lblDataNasterii, lblEmail, lblStatut;
@@ -23,12 +24,14 @@ namespace InterfataUtilizator_WindowsForms
         private const int DIMENSIUNE_PAS_Y = 30;
         private const int DIMENSIUNE_PAS_X = 150;
         private const int OFFSET_VERTICAL = 80;
+
         public Form1()
         {
             InitializeComponent();
             this.Text = "Evidența Angajaților";
-            this.Width = 1000; // Mărit pentru a încăpea toate coloanele
+            this.Width = 1000;
             this.Height = 600;
+            this.Resize += new EventHandler(Form1_Resize);
 
             // Citirea configurației fișierului
             string numeFisier = ConfigurationManager.AppSettings["NumeFisier"];
@@ -40,40 +43,118 @@ namespace InterfataUtilizator_WindowsForms
 
             CreazaInterfata();
         }
-
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (panelFundal != null)
+            {
+                panelFundal.Left = (this.ClientSize.Width - panelFundal.Width) / 2;
+                panelFundal.Top = (this.ClientSize.Height - panelFundal.Height) / 2;
+            }
+        }
         private void CreazaInterfata()
         {
-            // Titlu
+            int latimeTabel = 6 * DIMENSIUNE_PAS_X + LATIME_CONTROL;
+            int inaltimeTabel = 100 + (10 * DIMENSIUNE_PAS_Y);
+
+            // Create blue background panel
+            panelFundal = new Panel
+            {
+               // BackColor = Color.LightSkyBlue,
+                Width = latimeTabel,
+                Height = inaltimeTabel,
+                Left = (this.ClientSize.Width - latimeTabel) / 2,
+                Top = 20,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            this.Controls.Add(panelFundal);
+            panelFundal.SendToBack();
+
+            // Create title label
             lblTitlu = new Label
             {
-                Text = "Lista Angajaților",
-                Top = 10,
-                Left = 50,
-                AutoSize = true,
-                Font = new Font("Arial", 14, FontStyle.Bold)
+                Text = "LISTA ANGAJAȚILOR",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Top,
+                Height = 40,
+                BackColor = Color.LightSkyBlue,
+                ForeColor = Color.Black,
+                Font = new Font("Arial", 14, FontStyle.Bold),
+                Parent = panelFundal
             };
-            this.Controls.Add(lblTitlu);
-            int topAntet = 10 + OFFSET_VERTICAL;
-            // Antet tabel
-            lblNume = new Label { Text = "Nume", Top = 50, Left = DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
-            lblProfesie = new Label { Text = "Profesie", Top = 50, Left = 2 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
-            lblVechime = new Label { Text = "Vechime", Top = 50, Left = 3 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
-            lblDataNasterii = new Label { Text = "Data Nașterii", Top = 50, Left = 4 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
-            lblEmail = new Label { Text = "Email", Top = 50, Left = 5 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
-            lblStatut = new Label { Text = "Statut", Top = 50, Left = 6 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
 
-            this.Controls.Add(lblNume);
-            this.Controls.Add(lblProfesie);
-            this.Controls.Add(lblVechime);
-            this.Controls.Add(lblDataNasterii);
-            this.Controls.Add(lblEmail);
-            this.Controls.Add(lblStatut);
+            // Create headers
+            int topAntet = 50;
+            lblNume = new Label
+            {
+                Text = "Nume",
+                Top = topAntet,
+                Left = DIMENSIUNE_PAS_X,
+                AutoSize = true,
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Parent = panelFundal,
+                BackColor = Color.Transparent
+            };
+
+            lblProfesie = new Label 
+            { 
+                Text = "Profesie", 
+                Top = topAntet, 
+                Left = 2 * DIMENSIUNE_PAS_X, 
+                AutoSize = true, 
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Parent = panelFundal,
+                BackColor = Color.Transparent
+            };
+
+            lblVechime = new Label 
+            { 
+                Text = "Vechime", 
+                Top = topAntet, 
+                Left = 3 * DIMENSIUNE_PAS_X, 
+                AutoSize = true, 
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Parent = panelFundal,
+                BackColor = Color.Transparent
+            };
+
+            lblDataNasterii = new Label 
+            { 
+                Text = "Data Nașterii", 
+                Top = topAntet, 
+                Left = 4 * DIMENSIUNE_PAS_X, 
+                AutoSize = true, 
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Parent = panelFundal,
+                BackColor = Color.Transparent
+            };
+
+            lblEmail = new Label 
+            { 
+                Text = "Email", 
+                Top = topAntet, 
+                Left = 5 * DIMENSIUNE_PAS_X, 
+                AutoSize = true, 
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Parent = panelFundal,
+                BackColor = Color.Transparent
+            };
+
+            lblStatut = new Label 
+            { 
+                Text = "Statut", 
+                Top = topAntet, 
+                Left = 6 * DIMENSIUNE_PAS_X, 
+                AutoSize = true, 
+                Font = new Font("Arial", 12, FontStyle.Bold),
+                Parent = panelFundal,
+                BackColor = Color.Transparent
+            };
+
             AfiseazaAngajati();
         }
 
         private void AfiseazaAngajati()
         {
-
             var angajati = adminAngajati.GetAngajati(out int nrAngajati);
 
             if (nrAngajati == 0)
@@ -82,14 +163,13 @@ namespace InterfataUtilizator_WindowsForms
                 return;
             }
 
-            // Debug: afișează datele în consolă
-            Console.WriteLine("Date citite din fișier:");
-            foreach (var a in angajati)
+            // Clear existing data rows
+            foreach (Control control in panelFundal.Controls.OfType<Label>().Where(l => l.Top > 80).ToList())
             {
-                Console.WriteLine($"{a.Nume}, {a.Profesie}, {a.Vechime}, {a.DataNasterii}, {a.Email}, {a.Statut}");
+                panelFundal.Controls.Remove(control);
             }
 
-            // Alocare memorie pentru etichete
+            // Initialize label arrays
             lblsNume = new Label[nrAngajati];
             lblsProfesie = new Label[nrAngajati];
             lblsVechime = new Label[nrAngajati];
@@ -97,28 +177,75 @@ namespace InterfataUtilizator_WindowsForms
             lblsEmail = new Label[nrAngajati];
             lblsStatut = new Label[nrAngajati];
 
-            // Adăugare date angajați
+            // Add employee data
             for (int i = 0; i < nrAngajati; i++)
             {
-                int topPosition = (i + 3) * DIMENSIUNE_PAS_Y;
+                int topPosition = 80 + (i * DIMENSIUNE_PAS_Y);
 
-                lblsNume[i] = new Label { Text = angajati[i].Nume, Top = topPosition, Left = DIMENSIUNE_PAS_X, AutoSize = true };
-                lblsProfesie[i] = new Label { Text = angajati[i].Profesie, Top = topPosition, Left = 2 * DIMENSIUNE_PAS_X, AutoSize = true };
-                lblsVechime[i] = new Label { Text = angajati[i].Vechime + " ani", Top = topPosition, Left = 3 * DIMENSIUNE_PAS_X, AutoSize = true };
-                lblsDataNasterii[i] = new Label { Text = angajati[i].DataNasterii.ToString("dd/MM/yyyy"), Top = topPosition, Left = 4 * DIMENSIUNE_PAS_X, AutoSize = true };
-                lblsEmail[i] = new Label { Text = angajati[i].Email, Top = topPosition, Left = 5 * DIMENSIUNE_PAS_X, AutoSize = true };
-                lblsStatut[i] = new Label { Text = angajati[i].Statut.ToString(), Top = topPosition, Left = 6 * DIMENSIUNE_PAS_X, AutoSize = true };
+                lblsNume[i] = new Label 
+                { 
+                    Text = angajati[i].Nume, 
+                    Top = topPosition, 
+                    Left = DIMENSIUNE_PAS_X, 
+                    AutoSize = true,
+                    Parent = panelFundal,
+                    BackColor = Color.Transparent
+                };
 
-                this.Controls.Add(lblsNume[i]);
-                this.Controls.Add(lblsProfesie[i]);
-                this.Controls.Add(lblsVechime[i]);
-                this.Controls.Add(lblsDataNasterii[i]);
-                this.Controls.Add(lblsEmail[i]);
-                this.Controls.Add(lblsStatut[i]);
+                lblsProfesie[i] = new Label 
+                { 
+                    Text = angajati[i].Profesie, 
+                    Top = topPosition, 
+                    Left = 2 * DIMENSIUNE_PAS_X, 
+                    AutoSize = true,
+                    Parent = panelFundal,
+                    BackColor = Color.Transparent
+                };
+
+                lblsVechime[i] = new Label 
+                { 
+                    Text = angajati[i].Vechime + " ani", 
+                    Top = topPosition, 
+                    Left = 3 * DIMENSIUNE_PAS_X, 
+                    AutoSize = true,
+                    Parent = panelFundal,
+                    BackColor = Color.Transparent
+                };
+
+                lblsDataNasterii[i] = new Label 
+                { 
+                    Text = angajati[i].DataNasterii.ToString("dd/MM/yyyy"), 
+                    Top = topPosition, 
+                    Left = 4 * DIMENSIUNE_PAS_X, 
+                    AutoSize = true,
+                    Parent = panelFundal,
+                    BackColor = Color.Transparent
+                };
+
+                lblsEmail[i] = new Label 
+                { 
+                    Text = angajati[i].Email, 
+                    Top = topPosition, 
+                    Left = 5 * DIMENSIUNE_PAS_X, 
+                    AutoSize = true,
+                    Parent = panelFundal,
+                    BackColor = Color.Transparent
+                };
+
+                lblsStatut[i] = new Label 
+                { 
+                    Text = angajati[i].Statut.ToString(), 
+                    Top = topPosition, 
+                    Left = 6 * DIMENSIUNE_PAS_X, 
+                    AutoSize = true,
+                    Parent = panelFundal,
+                    BackColor = Color.Transparent
+                };
             }
 
-      }
-
+            // Resize panel to fit all employees
+            panelFundal.Height = 100 + (nrAngajati * DIMENSIUNE_PAS_Y);
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
