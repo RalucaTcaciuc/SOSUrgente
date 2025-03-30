@@ -11,8 +11,8 @@ namespace NivelStocareDate
     {
         private const string FisierAngajati = "angajati.txt";
         private const int NR_MAX_ANGAJATI = 50;
-        private string numeFisier;
-
+        private readonly string numeFisier;
+        //private Angajat=FromString()
         public Administrare_angajati_FisierText(string numeFisier)
         {
             this.numeFisier = numeFisier;
@@ -27,88 +27,62 @@ namespace NivelStocareDate
             catch (Exception ex)
             {
                 Console.WriteLine($"Eroare la crearea fisierului: {ex.Message}");
+                throw;
             }
         }
-
 
         public bool AdaugaAngajat(Angajat angajat)
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(numeFisier, true))
-                {
-                    writer.WriteLine(angajat.Info());
-                }
+                File.AppendAllText(numeFisier, angajat.Info() + Environment.NewLine);
                 Console.WriteLine($"Angajat adăugat: {angajat.Info()}");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Eroare la scriere: {ex.Message}");
+                Console.WriteLine($"Eroare la adăugare angajat: {ex.Message}");
                 return false;
             }
         }
 
-
-        public Angajat[] GetAngajati(out int nrAngajati)
+        public List<Angajat> GetAngajati(out int nrAngajati)
         {
-            Angajat[] angajati = new Angajat[NR_MAX_ANGAJATI];
+            List<Angajat> angajati = new List<Angajat>();
             nrAngajati = 0;
 
             try
             {
-                using (StreamReader reader = new StreamReader(numeFisier))
+                if (!File.Exists(numeFisier))
                 {
-                    string linieFisier;
-                    while ((linieFisier = reader.ReadLine()) != null)
+                    Console.WriteLine($"Fișierul {numeFisier} nu există!");
+                    return angajati;
+                }
+
+                Console.WriteLine($"Încep citirea din {numeFisier}");
+                string[] linii = File.ReadAllLines(numeFisier);
+
+                foreach (string linie in linii)
+                {
+                    Console.WriteLine($"Procesez linia: {linie}");
+                    Angajat angajat = Angajat.FromString(linie);
+
+                    if (angajat != null)
                     {
-                        Angajat angajat = Angajat.FromString(linieFisier);
-                        if (angajat != null)
-                        {
-                            angajati[nrAngajati] = angajat;
-                            nrAngajati++;
-                        }
+                        angajati.Add(angajat);
+                        nrAngajati++;
+                        Console.WriteLine($"Adăugat angajat: {angajat.Nume}");
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-               
+                Console.WriteLine($"EROARE GRAVĂ: {ex.Message}");
             }
 
+            Console.WriteLine($"Total angajați găsiți: {nrAngajati}");
             return angajati;
         }
-
-        public int GetUltimulIdAngajat()
-        {
-            int idMax = 0;
-
-            try
-            {
-                if (File.Exists(numeFisier))
-                {
-                    string[] linii = File.ReadAllLines(numeFisier);
-                    foreach (var linie in linii)
-                    {
-                        var dateFisier = linie.Split(',');
-                        if (dateFisier.Length > 0 && int.TryParse(dateFisier[0], out int idAngajat))
-                        {
-                            if (idAngajat > idMax)
-                            {
-                                idMax = idAngajat;
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-               
-            }
-
-            return idMax;
-        }
-
         public static List<Angajat> CitesteAngajatiDinFisier()
         {
             List<Angajat> angajati = new List<Angajat>();
@@ -125,7 +99,6 @@ namespace NivelStocareDate
 
             return angajati;
         }
-
         public static bool ScrieAngajatiInFisier(List<Angajat> angajati)
         {
             try
@@ -150,24 +123,51 @@ namespace NivelStocareDate
             }
         }
 
-
-
-        public static Angajat CreeazaAngajat(string nume, string dataNasteriiStr, string profesie, int vechime, string email, string statut)
+        public int GetUltimulIdAngajat()
         {
-            if (DateTime.TryParseExact(dataNasteriiStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dataNasterii))
+            try
             {
-                // Convertire string → enum
-                if (Enum.TryParse(statut, true, out StatutAngajat statutAngajat))
-                {
-                    return new Angajat(nume, dataNasterii, profesie, vechime, email, statutAngajat);
-                }
-                else
-                {
-                    Console.WriteLine("Statut invalid. Se folosește statutul default (Subofiter).");
-                    return new Angajat(nume, dataNasterii, profesie, vechime, email, StatutAngajat.Subofiter);
-                }
+                return File.Exists(numeFisier)
+                    ? File.ReadLines(numeFisier)
+                          .Select(linie => linie.Split(','))
+                          .Where(date => date.Length > 0 && int.TryParse(date[0], out _))
+                          .Select(date => int.Parse(date[0]))
+                          .DefaultIfEmpty(0)
+                          .Max()
+                    : 0;
             }
-            return null;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la citire ID: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public static Angajat CreeazaAngajat(string nume, string dataNasteriiStr, string profesie,
+                                           int vechime, string email, string statut)
+        {
+            try
+            {
+                if (!DateTime.TryParseExact(dataNasteriiStr, "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                                          DateTimeStyles.None, out DateTime dataNasterii))
+                {
+                    Console.WriteLine("Format dată invalid. Folosind data curentă.");
+                    dataNasterii = DateTime.Today;
+                }
+
+                if (!Enum.TryParse(statut, true, out StatutAngajat statutAngajat))
+                {
+                    Console.WriteLine("Statut invalid. Folosind statutul default (Subaltern).");
+                    statutAngajat = StatutAngajat.Ofiter;
+                }
+
+                return new Angajat(nume, profesie,  vechime, dataNasterii,  email, statutAngajat);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la creare angajat: {ex.Message}");
+                return null;
+            }
         }
     }
 }

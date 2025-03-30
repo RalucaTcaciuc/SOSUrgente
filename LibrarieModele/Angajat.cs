@@ -6,75 +6,99 @@ namespace LibrarieModele
     [Flags]
     public enum StatutAngajat
     {
-        Subofiter = 0,            
-        Ofiter = 1,              
-        Pensionar = 2,           
-        PersonalAdministrativ = 4 
+        Subofiter = 0,
+        Ofiter = 1,
+        Pensionar = 2,
+        PersonalAdministrativ = 4
     }
 
-    public class Angajat : Persoana
+    // Presupunem că Persoana este o clasă de bază cu o metodă Info()
+    //public class Persoana
+    //{
+    //    //public virtual string Info()
+    //    //{
+    //    //    return "Informații persoană";
+    //    //}
+    //}
+
+    public class Angajat //: Persoana
     {
-        public string profesie { get; set; }
-        public int vechime { get; set; }
-        public string email { get; set; }
-        public StatutAngajat statut;
-  
+        private StatutAngajat statutAngajat;
 
-        public Angajat() : base()
+        public string Nume { get; set; }
+        public string Profesie { get; set; }
+        public int Vechime { get; set; }
+        public DateTime DataNasterii { get; set; }
+        public string Email { get; set; }
+        public StatutAngajat Statut { get; set; }
+
+        // Constructor pentru crearea unui Angajat
+        public Angajat(string nume, string profesie, int vechime, DateTime dataNasterii, string email, StatutAngajat statut)
         {
-            profesie = string.Empty;
-            vechime = 0;
-            email = string.Empty;
-            statut = StatutAngajat.Subofiter; 
+            Nume = nume;
+            Profesie = profesie;
+            Vechime = vechime;
+            DataNasterii = dataNasterii;
+            Email = email;
+            Statut = statut;
         }
 
-      
-        public Angajat(string nume, DateTime dataNasterii, string profesie, int vechime, string email, StatutAngajat statut)
-            : base(nume, dataNasterii)
+        public Angajat(string nume, DateTime dataNasterii, string profesie, int vechime, string email, StatutAngajat statutAngajat)
         {
-            this.profesie = profesie;
-            this.vechime = vechime;
-            this.email = email;
-            this.statut = statut; 
+            Nume = nume;
+            DataNasterii = dataNasterii;
+            Profesie = profesie;
+            Vechime = vechime;
+            Email = email;
+            this.statutAngajat = statutAngajat;
         }
 
-      
+        // Metoda Info pentru a returna informațiile angajatului
         public string Info()
         {
-            return base.Info() + $",{profesie},{vechime},{email},{statut}";
+            return $"{Nume}, {Profesie}, {Vechime}, {DataNasterii.ToString("dd/MM/yyyy")}, {Email}, {Statut}";
         }
-        
+
         public string GetNume()
         {
-            return base.Info().Split(',')[0];
+            return Nume;
         }
 
 
         public string GetProfesie()
         {
-            return profesie;
+            return Profesie;
         }
 
-        public static Angajat FromString(string data)
+        public static Angajat FromString(string linie)
         {
-            string[] parts = data.Split(',');
-
-            if (parts.Length != 6) return null; 
-
-            string nume = parts[0];
-            string[] formatePosibile = { "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd" };
-            if (!DateTime.TryParseExact(parts[1].Trim(), formatePosibile, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dataNasterii))
+            try
             {
-                Console.WriteLine($"Eroare: Data '{parts[1]}' nu este într-un format valid.");
+                string[] date = linie.Split(',');
+                if (date.Length != 6) return null;
+
+                // Parsare corectă a enum-ului
+                StatutAngajat statut;
+                if (!Enum.TryParse(date[5].Trim(), true, out statut))
+                {
+                    // Valoare implicită dacă parsarea eșuează
+                    statut = StatutAngajat.Ofiter;
+                }
+
+                return new Angajat(
+                    nume: date[0].Trim(),
+                    dataNasterii: DateTime.ParseExact(date[3].Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture),
+                    profesie: date[1].Trim(),
+                    vechime: int.Parse(date[2].Trim()),
+                    email: date[4].Trim(),
+                    statut: statut
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Eroare la parsare angajat: {ex.Message}");
                 return null;
             }
-
-            string profesie = parts[2];
-            int vechime = int.Parse(parts[3]);
-            string email = parts[4];
-            StatutAngajat statut = (StatutAngajat)Enum.Parse(typeof(StatutAngajat), parts[5]); 
-
-            return new Angajat(nume, dataNasterii, profesie, vechime, email, statut);
         }
     }
 }
