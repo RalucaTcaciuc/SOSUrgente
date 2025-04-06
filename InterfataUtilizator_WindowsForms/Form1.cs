@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using LibrarieModele;
 using NivelStocareDate;
@@ -12,18 +14,28 @@ namespace InterfataUtilizator_WindowsForms
     {
         private Administrare_angajati_FisierText adminAngajati;
         private string caleFisier;
+        private Panel panelFundal;
 
+        private Label lblTitlu;
+        private Label lblNume, lblProfesie, lblVechime, lblDataNasterii, lblEmail, lblStatut;
+        private Label[] lblsNume, lblsProfesie, lblsVechime, lblsDataNasterii, lblsEmail, lblsStatut;
         private TextBox txtNume, txtProfesie, txtVechime, txtDataNasterii, txtEmail, txtStatut;
         private Button btnAdauga;
+
+        private const int LATIME_CONTROL = 120;
+        private const int DIMENSIUNE_PAS_Y = 30;
+        private const int DIMENSIUNE_PAS_X = 150;
+        private const int MARGINE_SUPERIOARA = 20;
+        private const int SPAIU_INTRE_ELEMENTE = 30;
 
         public Form1()
         {
             InitializeComponent();
-            this.Text = "Adăugare Angajat";
-            this.Width = 600;
-            this.Height = 400;
+            this.Text = "Evidența Angajaților";
+            this.Width = 1000;
+            this.Height = 700; // Mărim înălțimea inițială
+            this.Resize += new EventHandler(Form1_Resize);
 
-            // Configurare cale fișier
             string numeFisier = ConfigurationManager.AppSettings["NumeFisier"];
             string locatieFisierSolutie = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
             caleFisier = Path.Combine(locatieFisierSolutie, numeFisier);
@@ -33,53 +45,197 @@ namespace InterfataUtilizator_WindowsForms
             CreazaInterfata();
         }
 
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            if (panelFundal != null)
+            {
+                panelFundal.Left = (this.ClientSize.Width - panelFundal.Width) / 2;
+                // Panelul rămâne mereu în partea de sus
+                panelFundal.Top = MARGINE_SUPERIOARA;
+
+                // Repozitionăm elementele formularului sub panel
+                RepositionFormElements();
+            }
+        }
+
         private void CreazaInterfata()
         {
-            int startTop = 30;
-            int leftLabel = 50;
-            int leftTextBox = leftLabel + 150;
-            int pasY = 30;
+            int latimeTabel = 6 * DIMENSIUNE_PAS_X + LATIME_CONTROL;
+            int inaltimeTabel = 100 + (10 * DIMENSIUNE_PAS_Y);
+
+            // Creăm panelul pentru lista de angajați
+            panelFundal = new Panel
+            {
+                Width = latimeTabel,
+                Height = inaltimeTabel,
+                Left = (this.ClientSize.Width - latimeTabel) / 2,
+                Top = MARGINE_SUPERIOARA,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            this.Controls.Add(panelFundal);
+
+            // Titlul panelului
+            lblTitlu = new Label
+            {
+                Text = "LISTA ANGAJAȚILOR",
+                TextAlign = ContentAlignment.MiddleCenter,
+                Dock = DockStyle.Top,
+                Height = 40,
+                BackColor = Color.LightSkyBlue,
+                ForeColor = Color.Black,
+                Font = new Font("Arial", 14, FontStyle.Bold),
+                Parent = panelFundal
+            };
+
+            // Antetele tabelului
+            int topAntet = 50;
+            lblNume = new Label { Text = "Nume", Top = topAntet, Left = DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold), Parent = panelFundal };
+            lblProfesie = new Label { Text = "Profesie", Top = topAntet, Left = 2 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold), Parent = panelFundal };
+            lblVechime = new Label { Text = "Vechime", Top = topAntet, Left = 3 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold), Parent = panelFundal };
+            lblDataNasterii = new Label { Text = "Data Nașterii", Top = topAntet, Left = 4 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold), Parent = panelFundal };
+            lblEmail = new Label { Text = "Email", Top = topAntet, Left = 5 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold), Parent = panelFundal };
+            lblStatut = new Label { Text = "Statut", Top = topAntet, Left = 6 * DIMENSIUNE_PAS_X, AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold), Parent = panelFundal };
+
+            AfiseazaAngajati();
+
+            // Creăm formularul de adăugare sub panel
+            CreazaFormularAdaugare();
+        }
+
+        private void CreazaFormularAdaugare()
+        {
+            int topStart = panelFundal.Bottom + SPAIU_INTRE_ELEMENTE;
+            int formWidth = 500;
+            int leftForm = (this.ClientSize.Width - formWidth) / 2;
+            int labelWidth = 180;
+            int textBoxWidth = 250;
+            int spatiuY = 35;
+            int currentTop = topStart;
+
+            // Grupăm toate elementele formularului într-un panel separat
+            Panel panelFormular = new Panel
+            {
+                Top = topStart,
+                Left = leftForm - 10,
+                Width = formWidth + 20,
+                Height = 300,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.WhiteSmoke
+            };
+            this.Controls.Add(panelFormular);
+
+            // Adjustăm poziția relativă în interiorul noului panel
+            currentTop = 20;
 
             // Nume
-            Controls.Add(new Label { Text = "Nume:", Top = startTop, Left = leftLabel, Width = 140 });
-            txtNume = new TextBox { Top = startTop, Left = leftTextBox, Width = 200 };
-            Controls.Add(txtNume);
+            Label lblNumeForm = new Label { Text = "Nume:", Top = currentTop, Left = 10, Width = labelWidth, TextAlign = ContentAlignment.MiddleRight };
+            panelFormular.Controls.Add(lblNumeForm);
+            txtNume = new TextBox { Top = currentTop, Left = labelWidth + 20, Width = textBoxWidth };
+            panelFormular.Controls.Add(txtNume);
 
             // Profesie
-            Controls.Add(new Label { Text = "Profesie:", Top = startTop + pasY, Left = leftLabel, Width = 140 });
-            txtProfesie = new TextBox { Top = startTop + pasY, Left = leftTextBox, Width = 200 };
-            Controls.Add(txtProfesie);
+            currentTop += spatiuY;
+            Label lblProfesieForm = new Label { Text = "Profesie:", Top = currentTop, Left = 10, Width = labelWidth, TextAlign = ContentAlignment.MiddleRight };
+            panelFormular.Controls.Add(lblProfesieForm);
+            txtProfesie = new TextBox { Top = currentTop, Left = labelWidth + 20, Width = textBoxWidth };
+            panelFormular.Controls.Add(txtProfesie);
 
             // Vechime
-            Controls.Add(new Label { Text = "Vechime (ani):", Top = startTop + 2 * pasY, Left = leftLabel, Width = 140 });
-            txtVechime = new TextBox { Top = startTop + 2 * pasY, Left = leftTextBox, Width = 200 };
-            Controls.Add(txtVechime);
+            currentTop += spatiuY;
+            Label lblVechimeForm = new Label { Text = "Vechime (ani):", Top = currentTop, Left = 10, Width = labelWidth, TextAlign = ContentAlignment.MiddleRight };
+            panelFormular.Controls.Add(lblVechimeForm);
+            txtVechime = new TextBox { Top = currentTop, Left = labelWidth + 20, Width = textBoxWidth };
+            panelFormular.Controls.Add(txtVechime);
 
             // Data nașterii
-            Controls.Add(new Label { Text = "Data Nașterii (dd/MM/yyyy):", Top = startTop + 3 * pasY, Left = leftLabel, Width = 140 });
-            txtDataNasterii = new TextBox { Top = startTop + 3 * pasY, Left = leftTextBox, Width = 200 };
-            Controls.Add(txtDataNasterii);
+            currentTop += spatiuY;
+            Label lblDataNasteriiForm = new Label { Text = "Data Nașterii (dd/MM/yyyy):", Top = currentTop, Left = 10, Width = labelWidth, TextAlign = ContentAlignment.MiddleRight };
+            panelFormular.Controls.Add(lblDataNasteriiForm);
+            txtDataNasterii = new TextBox { Top = currentTop, Left = labelWidth + 20, Width = textBoxWidth };
+            panelFormular.Controls.Add(txtDataNasterii);
 
             // Email
-            Controls.Add(new Label { Text = "Email:", Top = startTop + 4 * pasY, Left = leftLabel, Width = 140 });
-            txtEmail = new TextBox { Top = startTop + 4 * pasY, Left = leftTextBox, Width = 200 };
-            Controls.Add(txtEmail);
+            currentTop += spatiuY;
+            Label lblEmailForm = new Label { Text = "Email:", Top = currentTop, Left = 10, Width = labelWidth, TextAlign = ContentAlignment.MiddleRight };
+            panelFormular.Controls.Add(lblEmailForm);
+            txtEmail = new TextBox { Top = currentTop, Left = labelWidth + 20, Width = textBoxWidth };
+            panelFormular.Controls.Add(txtEmail);
 
             // Statut
-            Controls.Add(new Label { Text = "Statut:", Top = startTop + 5 * pasY, Left = leftLabel, Width = 140 });
-            txtStatut = new TextBox { Top = startTop + 5 * pasY, Left = leftTextBox, Width = 200 };
-            Controls.Add(txtStatut);
+            currentTop += spatiuY;
+            Label lblStatutForm = new Label { Text = "Statut (Activ/Inactiv):", Top = currentTop, Left = 10, Width = labelWidth, TextAlign = ContentAlignment.MiddleRight };
+            panelFormular.Controls.Add(lblStatutForm);
+            txtStatut = new TextBox { Top = currentTop, Left = labelWidth + 20, Width = textBoxWidth };
+            panelFormular.Controls.Add(txtStatut);
 
             // Buton Adauga
             btnAdauga = new Button
             {
                 Text = "Adaugă",
-                Top = startTop + 6 * pasY + 10,
-                Left = leftTextBox,
-                Width = 100
+                Top = currentTop + spatiuY,
+                Left = (panelFormular.Width - 100) / 2,
+                Width = 100,
+                Height = 30
             };
             btnAdauga.Click += BtnAdauga_Click;
-            Controls.Add(btnAdauga);
+            panelFormular.Controls.Add(btnAdauga);
+
+            // Actualizăm înălțimea panelului formularului
+            panelFormular.Height = btnAdauga.Bottom + 20;
+
+            // Actualizăm înălțimea totală a formularului
+            this.Height = panelFormular.Bottom + 50;
+        }
+
+        private void RepositionFormElements()
+        {
+            // Găsim panelul formularului (ultimul panel adăugat)
+            Panel panelFormular = this.Controls.OfType<Panel>().LastOrDefault();
+            if (panelFormular != null)
+            {
+                // Repozitionăm panelul formularului sub panelul principal
+                panelFormular.Top = panelFundal.Bottom + SPAIU_INTRE_ELEMENTE;
+                panelFormular.Left = (this.ClientSize.Width - panelFormular.Width) / 2;
+
+                // Actualizăm înălțimea totală a formularului
+                this.Height = panelFormular.Bottom + 50;
+            }
+        }
+
+        private void AfiseazaAngajati()
+        {
+            var angajati = adminAngajati.GetAngajati(out int nrAngajati);
+
+            // Ștergem vechile etichete de date
+            foreach (Control control in panelFundal.Controls.OfType<Label>().Where(l => l.Top > 80).ToList())
+            {
+                panelFundal.Controls.Remove(control);
+            }
+
+            if (nrAngajati == 0)
+            {
+                panelFundal.Height = 100; // Dimensiune minimă
+                return;
+            }
+
+            // Adăugăm noile date
+            for (int i = 0; i < nrAngajati; i++)
+            {
+                int topPosition = 80 + (i * DIMENSIUNE_PAS_Y);
+
+                new Label { Text = angajati[i].Nume, Top = topPosition, Left = DIMENSIUNE_PAS_X, AutoSize = true, Parent = panelFundal };
+                new Label { Text = angajati[i].Profesie, Top = topPosition, Left = 2 * DIMENSIUNE_PAS_X, AutoSize = true, Parent = panelFundal };
+                new Label { Text = angajati[i].Vechime + " ani", Top = topPosition, Left = 3 * DIMENSIUNE_PAS_X, AutoSize = true, Parent = panelFundal };
+                new Label { Text = angajati[i].DataNasterii.ToString("dd/MM/yyyy"), Top = topPosition, Left = 4 * DIMENSIUNE_PAS_X, AutoSize = true, Parent = panelFundal };
+                new Label { Text = angajati[i].Email, Top = topPosition, Left = 5 * DIMENSIUNE_PAS_X, AutoSize = true, Parent = panelFundal };
+                new Label { Text = angajati[i].Statut.ToString(), Top = topPosition, Left = 6 * DIMENSIUNE_PAS_X, AutoSize = true, Parent = panelFundal };
+            }
+
+            // Actualizăm înălțimea panelului
+            panelFundal.Height = 100 + (nrAngajati * DIMENSIUNE_PAS_Y);
+
+            // Repozitionăm formularul sub noul panel
+            RepositionFormElements();
         }
 
         private void BtnAdauga_Click(object sender, EventArgs e)
@@ -105,11 +261,18 @@ namespace InterfataUtilizator_WindowsForms
                 txtDataNasterii.Clear();
                 txtEmail.Clear();
                 txtStatut.Clear();
+
+                AfiseazaAngajati();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Eroare: " + ex.Message);
             }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            AfiseazaAngajati();
         }
     }
 }
