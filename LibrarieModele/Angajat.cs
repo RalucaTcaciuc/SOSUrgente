@@ -12,7 +12,7 @@ namespace LibrarieModele
         PersonalAdministrativ = 4
     }
 
-    // Presupunem că Persoana este o clasă de bază cu o metodă Info()
+    
     //public class Persoana
     //{
     //    //public virtual string Info()
