@@ -9,7 +9,7 @@ namespace NivelStocareDate
 {
     public class Administrare_angajati_FisierText
     {
-        private const string FisierAngajati = "angajati.txt";
+        private const string FisierAngajati = "C:\\Users\\mohai\\Desktop\\SOSUrgente\\SOSUrgente\\bin\\Debug\\angajati.txt";
         private const int NR_MAX_ANGAJATI = 50;
         private readonly string numeFisier;
         //private Angajat=FromString()
@@ -99,6 +99,7 @@ namespace NivelStocareDate
 
             return angajati;
         }
+
         public static bool ScrieAngajatiInFisier(List<Angajat> angajati)
         {
             try

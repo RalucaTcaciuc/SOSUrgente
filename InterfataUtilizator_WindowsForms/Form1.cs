@@ -70,12 +70,49 @@ namespace InterfataUtilizator_WindowsForms
             // Citire configurație
             string numeFisier = ConfigurationManager.AppSettings["NumeFisier"];
             string locatieFisierSolutie = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
-            caleFisier = Path.Combine(locatieFisierSolutie, numeFisier);
+            caleFisier = "C:\\Users\\Lenovo\\Downloads\\SOSUrgente\\SOSUrgente\\SOSUrgente\\bin\\Debug\\angajati.txt";
 
             adminAngajati = new Administrare_angajati_FisierText(caleFisier);
             CreazaInterfata();
         }
+        private void CreazaPanouCautare()
+        {
+            // Panel pentru căutare
+            panelCautare = new Panel
+            {
+                BorderStyle = BorderStyle.FixedSingle,
+                Width = LATIME_PANOU,
+                Height = 120,
+                Top = panelAdaugare.Bottom + 20,
+                Left = panelContainerLista.Left,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+            panelPrincipal.Controls.Add(panelCautare);
 
+            // Controale căutare
+            int searchTop = 20;
+            int searchLeft = 100;
+
+            // Câmpuri de căutare
+            AdaugaCampCautare("Caută după nume:", out txtSearchNume, out btnSearchNume, searchLeft, ref searchTop);
+            AdaugaCampCautare("Caută după profesie:", out txtSearchProfesie, out btnSearchProfesie, searchLeft, ref searchTop);
+
+            btnSearchNume.Click += (s, e) => CautaDupaNume(txtSearchNume.Text);
+            btnSearchProfesie.Click += (s, e) => CautaDupaProfesie(txtSearchProfesie.Text);
+
+            // Buton resetare
+            btnResetSearch = new Button
+            {
+                Text = "Resetează căutarea",
+                Top = searchTop + 10,
+                Left = searchLeft,
+                Width = 200,
+                BackColor = Color.LightGray,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnResetSearch.Click += (s, e) => AfiseazaAngajati();
+            panelCautare.Controls.Add(btnResetSearch);
+        }
         private void Form1_Resize(object sender, EventArgs e)
         {
             if (panelContainerLista != null)
@@ -256,6 +293,11 @@ namespace InterfataUtilizator_WindowsForms
             panelAdaugare.Controls.Add(btnAdauga);
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
         private Panel GetPanelAdaugare()
         {
             if (panelAdaugare == null)
@@ -404,8 +446,10 @@ namespace InterfataUtilizator_WindowsForms
                 panelFundal.Controls.Add(rowPanel);
             }
 
+            //MessageBox.Show(text);
             var label = new Label
             {
+
                 Text = text,
                 Top = 0,
                 Left = left,
@@ -417,8 +461,14 @@ namespace InterfataUtilizator_WindowsForms
                 AutoEllipsis = true,
                 Cursor = Cursors.Hand // Add hand cursor to indicate clickability
             };
+
             label.Click += (s, e) => RowPanel_Click(rowPanel, e);
+
+            //MessageBox.Show(label.Text);
+
             rowPanel.Controls.Add(label);
+
+            //MessageBox.Show(label.Text);
         }
 
         private void BtnAdauga_Click(object sender, EventArgs e)
@@ -455,11 +505,14 @@ namespace InterfataUtilizator_WindowsForms
                                 txtEmail.Text.Trim(),
                                 statutSelectat
                             );
+                            //int lastItem = angajati[angajati.Count - 1];
+                            angajati.RemoveAt(angajati.Count - 1);
 
                             // Save all employees back to file
                             if (Administrare_angajati_FisierText.ScrieAngajatiInFisier(angajati))
                             {
                                 MessageBox.Show("Angajat actualizat cu succes!");
+                                
                                 ClearFormFields();
                                 AfiseazaAngajati();
                             }
@@ -534,9 +587,8 @@ namespace InterfataUtilizator_WindowsForms
                 lblErrorEmail.Text = "Email invalid!";
             }
 
-            // Verifică dacă un statut a fost selectat
-            bool isStatutSelected = rbSubofiter.Checked || rbOfiter.Checked || 
-                                  rbPensionar.Checked || rbPersonalAdministrativ.Checked;
+            bool isStatutSelected = rbSubofiter.Checked || rbOfiter.Checked ||
+                           rbPensionar.Checked || rbPersonalAdministrativ.Checked;
 
             if (!isStatutSelected)
             {
@@ -564,25 +616,15 @@ namespace InterfataUtilizator_WindowsForms
             txtVechime.Clear();
             txtDataNasterii.Clear();
             txtEmail.Clear();
-            
-            rbSubofiter.Checked = false;
-            rbOfiter.Checked = false;
-            rbPensionar.Checked = false;
-            rbPersonalAdministrativ.Checked = false;
-
-            selectedAngajat = null;
-            if (selectedRow != null)
-            {
-                selectedRow.BackColor = ((int)selectedRow.Tag % 2 == 0) ? Color.White : Color.Lavender;
-                selectedRow = null;
-            }
-            btnAdauga.Text = "Adaugă";
         }
 
         private void CautaDupaNume(string numeCautat)
         {
             var angajati = adminAngajati.GetAngajati(out _);
             var angajatiGasiti = Administrare_angajati_Memorie.CautaAngajatDupaNume(angajati, numeCautat);
+
+            //MessageBox.Show(angajatiGasiti[0].Nume);
+
             AfiseazaRezultateCautare(angajatiGasiti);
         }
 
@@ -593,75 +635,80 @@ namespace InterfataUtilizator_WindowsForms
             AfiseazaRezultateCautare(angajatiGasiti);
         }
 
-        private void AfiseazaRezultateCautare(List<Angajat> angajatiGasiti)
+        public void AfiseazaRezultateCautare(List<Angajat> angajatiGasiti)
         {
-            // Clear existing data rows
-            foreach (Control control in panelFundal.Controls.OfType<Label>().Where(l => l.Top > 50).ToList())
-            {
-                panelFundal.Controls.Remove(control);
-            }
-
-            if (angajatiGasiti.Count == 0)
-            {
-                MessageBox.Show("Nu s-au găsit angajați care să corespundă criteriului de căutare.");
-                panelFundal.Height = 70;
-                return;
-            }
-
-            for (int i = 0; i < angajatiGasiti.Count; i++)
-            {
-                int topPosition = 60 + (i * DIMENSIUNE_PAS_Y);
-
-                CreateDataLabel(angajatiGasiti[i].Nume, DIMENSIUNE_PAS_X, topPosition, i);
-                CreateDataLabel(angajatiGasiti[i].Profesie, 2 * DIMENSIUNE_PAS_X, topPosition, i);
-                CreateDataLabel(angajatiGasiti[i].Vechime + " ani", 3 * DIMENSIUNE_PAS_X, topPosition, i);
-                CreateDataLabel(angajatiGasiti[i].DataNasterii.ToString("dd/MM/yyyy"), 4 * DIMENSIUNE_PAS_X, topPosition, i);
-                CreateDataLabel(angajatiGasiti[i].Email, 5 * DIMENSIUNE_PAS_X, topPosition, i);
-                CreateDataLabel(angajatiGasiti[i].Statut.ToString(), 6 * DIMENSIUNE_PAS_X, topPosition, i);
-            }
-
-            panelFundal.Height = 60 + (angajatiGasiti.Count * DIMENSIUNE_PAS_Y);
-            panelContainerLista.AutoScroll = panelFundal.Height > panelContainerLista.Height;
+            RezultatCautareForm rezultForm = new RezultatCautareForm(angajatiGasiti);
+            rezultForm.ShowDialog();
         }
 
-        private void CreazaPanouCautare()
-        {
-            // Panel pentru căutare
-            panelCautare = new Panel
-            {
-                BorderStyle = BorderStyle.FixedSingle,
-                Width = LATIME_PANOU,
-                Height = 120,
-                Top = panelAdaugare.Bottom + 20,
-                Left = panelContainerLista.Left,
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-            };
-            panelPrincipal.Controls.Add(panelCautare);
+        //private void AfiseazaRezultateCautare(List<Angajat> angajatiGasiti)
+        //{
+        //    // Clear existing data rows
+        //    foreach (Control control in panelFundal.Controls.OfType<Label>().Where(l => l.Top > 50).ToList())
+        //    {
+        //        panelFundal.Controls.Remove(control);
+        //    }
 
-            // Controale căutare
-            int searchTop = 20;
-            int searchLeft = 100;
+        //    if (angajatiGasiti.Count == 0)
+        //    {
+        //        MessageBox.Show("Nu s-au găsit angajați care să corespundă criteriului de căutare.");
+        //        panelFundal.Height = 70;
+        //        return;
+        //    }
 
-            // Câmpuri de căutare
-            AdaugaCampCautare("Caută după nume:", out txtSearchNume, out btnSearchNume, searchLeft, ref searchTop);
-            AdaugaCampCautare("Caută după profesie:", out txtSearchProfesie, out btnSearchProfesie, searchLeft, ref searchTop);
+        //    // Add found employees
+        //    for (int i = 0; i < angajatiGasiti.Count; i++)
+        //    {
+        //        int topPosition = 60 + (i * DIMENSIUNE_PAS_Y);
 
-            btnSearchNume.Click += (s, e) => CautaDupaNume(txtSearchNume.Text);
-            btnSearchProfesie.Click += (s, e) => CautaDupaProfesie(txtSearchProfesie.Text);
+        //        CreateDataLabel(angajatiGasiti[i].Nume, DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Profesie, 2 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Vechime + " ani", 3 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].DataNasterii.ToString("dd/MM/yyyy"), 4 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Email, 5 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Statut.ToString(), 6 * DIMENSIUNE_PAS_X, topPosition, i);
+        //    }
 
-            // Buton resetare
-            btnResetSearch = new Button
-            {
-                Text = "Resetează căutarea",
-                Top = searchTop + 10,
-                Left = searchLeft,
-                Width = 200,
-                BackColor = Color.LightGray,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnResetSearch.Click += (s, e) => AfiseazaAngajati();
-            panelCautare.Controls.Add(btnResetSearch);
-        }
+        //    panelFundal.Height = 60 + (angajatiGasiti.Count * DIMENSIUNE_PAS_Y);
+        //    panelContainerLista.AutoScroll = panelFundal.Height > panelContainerLista.Height;
+        //}
+
+
+
+
+
+        //private void AfiseazaRezultateCautare(List<Angajat> angajatiGasiti)     A NU SE DECOMENTA ACESTE LINII DE COD 
+        //{
+        //    // Clear existing data rows
+        //    foreach (Control control in panelFundal.Controls.OfType<Label>().Where(l => l.Top > 50).ToList())
+        //    {
+        //        panelFundal.Controls.Remove(control);
+        //    }
+
+        //    if (angajatiGasiti.Count == 0)
+        //    {
+        //        MessageBox.Show("Nu s-au găsit angajați care să corespundă criteriului de căutare.");
+        //        panelFundal.Height = 70;
+        //        return;
+        //    }
+
+        //    for (int i = 0; i < angajatiGasiti.Count; i++)
+        //    {
+        //        int topPosition = 60 + (i * DIMENSIUNE_PAS_Y);
+        //        //MessageBox.Show(angajatiGasiti[i].Profesie);
+        //        //MessageBox.Show(angajatiGasiti[i].Nume);
+        //        CreateDataLabel(angajatiGasiti[i].Nume, DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Profesie, 2 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Vechime + " ani", 3 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].DataNasterii.ToString("dd/MM/yyyy"), 4 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Email, 5 * DIMENSIUNE_PAS_X, topPosition, i);
+        //        CreateDataLabel(angajatiGasiti[i].Statut.ToString(), 6 * DIMENSIUNE_PAS_X, topPosition, i);
+        //    }
+
+        //    panelFundal.Height = 60 + (angajatiGasiti.Count * DIMENSIUNE_PAS_Y);
+        //    panelContainerLista.AutoScroll = panelFundal.Height > panelContainerLista.Height;
+        //}
+
 
         private void RowPanel_Click(object sender, EventArgs e)
         {
@@ -699,7 +746,6 @@ namespace InterfataUtilizator_WindowsForms
             txtDataNasterii.Text = angajat.DataNasterii.ToString("dd/MM/yyyy");
             txtEmail.Text = angajat.Email;
 
-            // Set the appropriate radio button based on status
             rbSubofiter.Checked = angajat.Statut == StatutAngajat.Subofiter;
             rbOfiter.Checked = angajat.Statut == StatutAngajat.Ofiter;
             rbPensionar.Checked = angajat.Statut == StatutAngajat.Pensionar;

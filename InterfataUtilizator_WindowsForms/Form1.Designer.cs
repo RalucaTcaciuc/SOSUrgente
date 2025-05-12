@@ -24,37 +24,14 @@
 
         private void InitializeComponent()
         {
-            //this.lblTitlu = new System.Windows.Forms.Label();
-            //this.lblNume = new System.Windows.Forms.Label();
-            //this.SuspendLayout();
-
-            // 
-            // lblTitlu
-            // 
-            //this.lblTitlu.AutoSize = true;
-            //this.lblTitlu.Location = new System.Drawing.Point(50, 20);
-            //this.lblTitlu.Name = "lblTitlu";
-            //this.lblTitlu.Size = new System.Drawing.Size(35, 13);
-            //this.lblTitlu.Text = "Titlu";
-
-            // 
-            // lblNume
-            // 
-            //this.lblNume.AutoSize = true;
-            //this.lblNume.Location = new System.Drawing.Point(50, 60);
-            //this.lblNume.Name = "lblNume";
-            //this.lblNume.Size = new System.Drawing.Size(40, 13);
-            //this.lblNume.Text = "Nume";
-
+            this.SuspendLayout();
             // 
             // Form1
             // 
-            //this.ClientSize = new System.Drawing.Size(400, 300);
-            //this.Controls.Add(this.lblTitlu);
-            //this.Controls.Add(this.lblNume);
-            //this.Text = "Interfață Utilizator";
+            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Name = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
