@@ -47,6 +47,9 @@ namespace InterfataUtilizator_WindowsForms
         private const int DIMENSIUNE_PAS_X = 180; // Mărit de la 150
         private const int LATIME_PANOU = 1100; // Mărit de la 950
 
+        private Panel selectedRow;
+        private Angajat selectedAngajat;
+
         public Form1()
         {
             InitializeComponent();
@@ -163,10 +166,10 @@ namespace InterfataUtilizator_WindowsForms
             panelPrincipal.Controls.Add(panelAdaugare);
 
             // Adaugă câmpuri
-            int leftForm = 10; // Poziția din stânga formularului
-            int labelWidth = 150; // Lățimea etichetelor
-            int textBoxWidth = 200; // Lățimea casetelor de text
-            int spatiuY = 30; // Spațiu între controale pe verticală
+            int leftForm = 100; // Schimbat de la 10 la 100
+            int labelWidth = 150;
+            int textBoxWidth = 200;
+            int spatiuY = 30;
             int currentTop = 10;
 
             AdaugaCamp("Nume:", out txtNume, out lblErrorNume, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY, panelAdaugare);
@@ -241,8 +244,8 @@ namespace InterfataUtilizator_WindowsForms
             btnAdauga = new Button
             {
                 Text = "Adaugă",
-                Top = currentTop + 10, // Mărit de la currentTop + 10 la currentTop + 140
-                Left = (LATIME_PANOU - 100) / 2 - 300,
+                Top = currentTop + 10,
+                Left = (LATIME_PANOU - 100) / 2 - 200, // Ajustat
                 Width = 100,
                 Height = 30,
                 BackColor = Color.SteelBlue,
@@ -381,20 +384,41 @@ namespace InterfataUtilizator_WindowsForms
 
         private void CreateDataLabel(string text, int left, int top, int rowIndex, int width = 0)
         {
+            // Create a panel for the entire row if it doesn't exist
+            Panel rowPanel = panelFundal.Controls.OfType<Panel>()
+                .FirstOrDefault(p => p.Top == top) as Panel;
+
+            if (rowPanel == null)
+            {
+                rowPanel = new Panel
+                {
+                    Top = top,
+                    Left = 0,
+                    Width = LATIME_PANOU - 20,
+                    Height = DIMENSIUNE_PAS_Y,
+                    BackColor = rowIndex % 2 == 0 ? Color.White : Color.Lavender,
+                    Tag = rowIndex,
+                    Cursor = Cursors.Hand // Add hand cursor to indicate clickability
+                };
+                rowPanel.Click += RowPanel_Click;
+                panelFundal.Controls.Add(rowPanel);
+            }
+
             var label = new Label
             {
                 Text = text,
-                Top = top,
+                Top = 0,
                 Left = left,
                 Width = width > 0 ? width : LATIME_CONTROL,
+                Height = DIMENSIUNE_PAS_Y,
                 Font = new Font("Arial", 9),
-                BackColor = rowIndex % 2 == 0 ? Color.White : Color.Lavender,
-                Parent = panelFundal,
-                TextAlign = ContentAlignment.MiddleLeft
+                BackColor = Color.Transparent,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Cursor = Cursors.Hand // Add hand cursor to indicate clickability
             };
-
-            // Trunchiere text cu ellipsis dacă e prea lung
-            label.AutoEllipsis = true;
+            label.Click += (s, e) => RowPanel_Click(rowPanel, e);
+            rowPanel.Controls.Add(label);
         }
 
         private void BtnAdauga_Click(object sender, EventArgs e)
@@ -405,45 +429,73 @@ namespace InterfataUtilizator_WindowsForms
             {
                 try
                 {
-                    // Obținem statutul selectat din radio button-uri
-                    StatutAngajat statutSelectat = StatutAngajat.Ofiter; // Valoare implicită
-                    RadioButton[] radioButtons = { rbSubofiter, rbOfiter, rbPensionar, rbPersonalAdministrativ };
-                    
-                    foreach (var rb in radioButtons)
+                    // Get selected status
+                    StatutAngajat statutSelectat = StatutAngajat.Ofiter; // Default value
+                    if (rbSubofiter.Checked) statutSelectat = StatutAngajat.Subofiter;
+                    else if (rbOfiter.Checked) statutSelectat = StatutAngajat.Ofiter;
+                    else if (rbPensionar.Checked) statutSelectat = StatutAngajat.Pensionar;
+                    else if (rbPersonalAdministrativ.Checked) statutSelectat = StatutAngajat.PersonalAdministrativ;
+
+                    if (selectedAngajat != null)
                     {
-                        if (rb.Checked)
+                        // Update existing employee
+                        var angajati = adminAngajati.GetAngajati(out _).ToList();
+                        int index = angajati.FindIndex(a => 
+                            a.Nume == selectedAngajat.Nume && 
+                            a.DataNasterii == selectedAngajat.DataNasterii);
+
+                        if (index != -1)
                         {
-                            statutSelectat = (StatutAngajat)rb.Tag;
-                            break;
+                            // Create updated employee
+                            angajati[index] = new Angajat(
+                                txtNume.Text.Trim(),
+                                txtProfesie.Text.Trim(),
+                                int.Parse(txtVechime.Text),
+                                DateTime.ParseExact(txtDataNasterii.Text, "dd/MM/yyyy", null),
+                                txtEmail.Text.Trim(),
+                                statutSelectat
+                            );
+
+                            // Save all employees back to file
+                            if (Administrare_angajati_FisierText.ScrieAngajatiInFisier(angajati))
+                            {
+                                MessageBox.Show("Angajat actualizat cu succes!");
+                                ClearFormFields();
+                                AfiseazaAngajati();
+                            }
+                            else
+                            {
+                                MessageBox.Show("Eroare la actualizarea angajatului!");
+                            }
                         }
-                    }
-
-                    Angajat angajatNou = new Angajat(
-                        txtNume.Text.Trim(),
-                        txtProfesie.Text.Trim(),
-                        int.Parse(txtVechime.Text),
-                        DateTime.ParseExact(txtDataNasterii.Text, "dd/MM/yyyy", null),
-                        txtEmail.Text.Trim(),
-                        statutSelectat
-                    );
-
-                    // Save to file
-                    bool salvat = adminAngajati.AdaugaAngajat(angajatNou);
-                    
-                    if (salvat)
-                    {
-                        MessageBox.Show("Angajat adăugat cu succes!");
-                        ClearFormFields();
-                        AfiseazaAngajati();
                     }
                     else
                     {
-                        MessageBox.Show("Eroare la salvarea angajatului!");
+                        // Add new employee
+                        Angajat angajatNou = new Angajat(
+                            txtNume.Text.Trim(),
+                            txtProfesie.Text.Trim(),
+                            int.Parse(txtVechime.Text),
+                            DateTime.ParseExact(txtDataNasterii.Text, "dd/MM/yyyy", null),
+                            txtEmail.Text.Trim(),
+                            statutSelectat
+                        );
+
+                        if (adminAngajati.AdaugaAngajat(angajatNou))
+                        {
+                            MessageBox.Show("Angajat adăugat cu succes!");
+                            ClearFormFields();
+                            AfiseazaAngajati();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Eroare la salvarea angajatului!");
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Eroare la adăugarea angajatului: {ex.Message}");
+                    MessageBox.Show($"Eroare: {ex.Message}");
                 }
             }
         }
@@ -513,11 +565,18 @@ namespace InterfataUtilizator_WindowsForms
             txtDataNasterii.Clear();
             txtEmail.Clear();
             
-            // Clear radio button selection
             rbSubofiter.Checked = false;
             rbOfiter.Checked = false;
             rbPensionar.Checked = false;
             rbPersonalAdministrativ.Checked = false;
+
+            selectedAngajat = null;
+            if (selectedRow != null)
+            {
+                selectedRow.BackColor = ((int)selectedRow.Tag % 2 == 0) ? Color.White : Color.Lavender;
+                selectedRow = null;
+            }
+            btnAdauga.Text = "Adaugă";
         }
 
         private void CautaDupaNume(string numeCautat)
@@ -602,6 +661,49 @@ namespace InterfataUtilizator_WindowsForms
             };
             btnResetSearch.Click += (s, e) => AfiseazaAngajati();
             panelCautare.Controls.Add(btnResetSearch);
+        }
+
+        private void RowPanel_Click(object sender, EventArgs e)
+        {
+            var panel = sender as Panel;
+            if (panel == null) return;
+
+            // Get the employee data
+            var angajati = adminAngajati.GetAngajati(out _);
+            int rowIndex = (int)panel.Tag;
+            if (rowIndex >= angajati.Count) return;
+
+            // Update selected row highlighting
+            if (selectedRow != null)
+            {
+                selectedRow.BackColor = ((int)selectedRow.Tag % 2 == 0) ? Color.White : Color.Lavender;
+            }
+            panel.BackColor = Color.LightBlue;
+            selectedRow = panel;
+
+            // Store selected employee and load their data
+            selectedAngajat = angajati[rowIndex];
+            LoadEmployeeDataToForm(selectedAngajat);
+
+            // Change button text to indicate edit mode
+            btnAdauga.Text = "Actualizează";
+        }
+
+        private void LoadEmployeeDataToForm(Angajat angajat)
+        {
+            if (angajat == null) return;
+
+            txtNume.Text = angajat.Nume;
+            txtProfesie.Text = angajat.Profesie;
+            txtVechime.Text = angajat.Vechime.ToString();
+            txtDataNasterii.Text = angajat.DataNasterii.ToString("dd/MM/yyyy");
+            txtEmail.Text = angajat.Email;
+
+            // Set the appropriate radio button based on status
+            rbSubofiter.Checked = angajat.Statut == StatutAngajat.Subofiter;
+            rbOfiter.Checked = angajat.Statut == StatutAngajat.Ofiter;
+            rbPensionar.Checked = angajat.Statut == StatutAngajat.Pensionar;
+            rbPersonalAdministrativ.Checked = angajat.Statut == StatutAngajat.PersonalAdministrativ;
         }
     }
 }
