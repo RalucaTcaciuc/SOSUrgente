@@ -22,15 +22,19 @@ namespace InterfataUtilizator_WindowsForms
         private Panel panelFundal;
         private Panel panelAdaugare;
         private Panel panelCautare;
+        private Panel panelStatut;
 
         // Labels
         private Label lblTitlu;
-        private Label lblNume, lblProfesie, lblVechime, lblDataNasterii, lblEmail, lblStatut;
+        //private Label lblNume, lblProfesie, lblVechime, lblDataNasterii, lblEmail, lblStatut;
         private Label lblErrorNume, lblErrorProfesie, lblErrorVechime, lblErrorDataNasterii, lblErrorEmail, lblErrorStatut;
 
         // TextBoxes
-        private TextBox txtNume, txtProfesie, txtVechime, txtDataNasterii, txtEmail, txtStatut;
+        private TextBox txtNume, txtProfesie, txtVechime, txtDataNasterii, txtEmail;
         private TextBox txtSearchNume, txtSearchProfesie;
+
+        // Radio Buttons
+        private RadioButton rbSubofiter, rbOfiter, rbPensionar, rbPersonalAdministrativ;
 
         // Buttons
         private Button btnAdauga;
@@ -125,7 +129,7 @@ namespace InterfataUtilizator_WindowsForms
                 Text = "LISTA ANGAJAȚILOR",
                 TextAlign = ContentAlignment.MiddleCenter,
                 Dock = DockStyle.Top,
-                Height = 30,
+                Height = 20,
                 BackColor = Color.LightSkyBlue,
                 ForeColor = Color.Black,
                 Font = new Font("Arial", 12, FontStyle.Bold),
@@ -146,39 +150,99 @@ namespace InterfataUtilizator_WindowsForms
 
         private void CreazaPanouAdaugare()
         {
-            // Panel pentru adăugare angajat
+            // Initialize panelAdaugare
             panelAdaugare = new Panel
             {
                 BorderStyle = BorderStyle.FixedSingle,
                 Width = LATIME_PANOU,
-                Height = 260,
+                Height = 500,
                 Top = panelContainerLista.Bottom + 20,
                 Left = panelContainerLista.Left,
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
             panelPrincipal.Controls.Add(panelAdaugare);
 
-            // Controale adăugare angajat
-            int leftForm = 20;
-            int labelWidth = 180;
-            int textBoxWidth = 250;
-            int spatiuY = 30;
+            // Adaugă câmpuri
+            int leftForm = 10; // Poziția din stânga formularului
+            int labelWidth = 150; // Lățimea etichetelor
+            int textBoxWidth = 200; // Lățimea casetelor de text
+            int spatiuY = 30; // Spațiu între controale pe verticală
             int currentTop = 10;
 
-            // Adaugă câmpuri
-            AdaugaCamp("Nume:", out txtNume, out lblErrorNume, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY);
-            AdaugaCamp("Profesie:", out txtProfesie, out lblErrorProfesie, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY);
-            AdaugaCamp("Vechime (ani):", out txtVechime, out lblErrorVechime, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY);
-            AdaugaCamp("Data Nașterii (dd/MM/yyyy):", out txtDataNasterii, out lblErrorDataNasterii, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY);
-            AdaugaCamp("Email:", out txtEmail, out lblErrorEmail, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY);
-            AdaugaCamp("Statut (Activ/Inactiv):", out txtStatut, out lblErrorStatut, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY);
+            AdaugaCamp("Nume:", out txtNume, out lblErrorNume, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY, panelAdaugare);
+            AdaugaCamp("Profesie:", out txtProfesie, out lblErrorProfesie, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY, panelAdaugare);
+            AdaugaCamp("Vechime (ani):", out txtVechime, out lblErrorVechime, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY, panelAdaugare);
+            AdaugaCamp("Data Nașterii (dd/MM/yyyy):", out txtDataNasterii, out lblErrorDataNasterii, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY, panelAdaugare);
+            AdaugaCamp("Email:", out txtEmail, out lblErrorEmail, leftForm, labelWidth, textBoxWidth, ref currentTop, spatiuY, panelAdaugare);
 
-            // Buton Adaugă
+            // Panel pentru radio button-uri (Statut)
+            panelStatut = new Panel
+            {
+                Top = currentTop,
+                Left = leftForm + labelWidth + 10,
+                Width = textBoxWidth + 60,
+                Height = 120, // Mărit de la 100 la 120
+                BorderStyle = BorderStyle.None
+            };
+            panelAdaugare.Controls.Add(panelStatut);
+
+            // Add status error label
+            lblErrorStatut = new Label
+            {
+                Top = currentTop,
+                Left = leftForm + labelWidth + textBoxWidth + 80,
+                ForeColor = Color.Red,
+                AutoSize = true
+            };
+            panelAdaugare.Controls.Add(lblErrorStatut);
+
+            // Adăugăm radio button-uri pentru fiecare statut
+            rbSubofiter = new RadioButton
+            {
+                Text = "Subofițer",
+                Tag = StatutAngajat.Subofiter,
+                Top = 10,
+                Left = 10,
+                Width = 150
+            };
+            rbOfiter = new RadioButton
+            {
+                Text = "Ofițer",
+                Tag = StatutAngajat.Ofiter,
+                Top = 35,
+                Left = 10,
+                Width = 150
+            };
+            rbPensionar = new RadioButton
+            {
+                Text = "Pensionar",
+                Tag = StatutAngajat.Pensionar,
+                Top = 60,
+                Left = 10,
+                Width = 150
+            };
+            rbPersonalAdministrativ = new RadioButton
+            {
+                Text = "Personal Administrativ",
+                Tag = StatutAngajat.PersonalAdministrativ,
+                Top = 85,
+                Left = 10,
+                Width = 200,
+                AutoSize = true // Adăugat pentru a asigura că tot textul este vizibil
+            };
+
+            panelStatut.Controls.Add(rbSubofiter);
+            panelStatut.Controls.Add(rbOfiter);
+            panelStatut.Controls.Add(rbPensionar);
+            panelStatut.Controls.Add(rbPersonalAdministrativ);
+
+            currentTop += 120; // Actualizare top pentru butonul de adăugare
+
             btnAdauga = new Button
             {
                 Text = "Adaugă",
-                Top = currentTop + 10,
-                Left = (LATIME_PANOU - 100) / 2,
+                Top = currentTop + 10, // Mărit de la currentTop + 10 la currentTop + 140
+                Left = (LATIME_PANOU - 100) / 2 - 300,
                 Width = 100,
                 Height = 30,
                 BackColor = Color.SteelBlue,
@@ -189,47 +253,19 @@ namespace InterfataUtilizator_WindowsForms
             panelAdaugare.Controls.Add(btnAdauga);
         }
 
-        private void CreazaPanouCautare()
+        private Panel GetPanelAdaugare()
         {
-            // Panel pentru căutare
-            panelCautare = new Panel
+            if (panelAdaugare == null)
             {
-                BorderStyle = BorderStyle.FixedSingle,
-                Width = LATIME_PANOU,
-                Height = 120,
-                Top = panelAdaugare.Bottom + 20,
-                Left = panelContainerLista.Left,
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-            };
-            panelPrincipal.Controls.Add(panelCautare);
-
-            // Controale căutare
-            int searchTop = 20;
-            int searchLeft = 100;
-
-            // Câmpuri de căutare
-            AdaugaCampCautare("Caută după nume:", out txtSearchNume, out btnSearchNume, searchLeft, ref searchTop);
-            AdaugaCampCautare("Caută după profesie:", out txtSearchProfesie, out btnSearchProfesie, searchLeft, ref searchTop);
-
-            btnSearchNume.Click += (s, e) => CautaDupaNume(txtSearchNume.Text);
-            btnSearchProfesie.Click += (s, e) => CautaDupaProfesie(txtSearchProfesie.Text);
-
-            // Buton resetare
-            btnResetSearch = new Button
-            {
-                Text = "Resetează căutarea",
-                Top = searchTop + 10,
-                Left = searchLeft,
-                Width = 200,
-                BackColor = Color.LightGray,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnResetSearch.Click += (s, e) => AfiseazaAngajati();
-            panelCautare.Controls.Add(btnResetSearch);
+                CreazaPanouAdaugare();
+            }
+            return panelAdaugare;
         }
 
-        private void AdaugaCamp(string labelText, out TextBox textBox, out Label errorLabel, int leftForm, int labelWidth, int textBoxWidth, ref int currentTop, int spatiuY)
+        private void AdaugaCamp(string labelText, out TextBox textBox, out Label errorLabel, int leftForm, int labelWidth, int textBoxWidth, ref int currentTop, int spatiuY, Panel panelAdaugare)
         {
+
+            // Add label
             panelAdaugare.Controls.Add(new Label
             {
                 Text = labelText,
@@ -239,6 +275,7 @@ namespace InterfataUtilizator_WindowsForms
                 TextAlign = ContentAlignment.MiddleRight
             });
 
+            // Create and add TextBox
             textBox = new TextBox
             {
                 Top = currentTop,
@@ -247,16 +284,18 @@ namespace InterfataUtilizator_WindowsForms
             };
             panelAdaugare.Controls.Add(textBox);
 
+            // Create and add error Label
             errorLabel = new Label
             {
-                Top = currentTop + 3,
-                Left = leftForm + labelWidth + textBoxWidth + 15,
+                Top = currentTop,
+                Left = leftForm + labelWidth + textBoxWidth + 20,
                 ForeColor = Color.Red,
                 AutoSize = true
             };
             panelAdaugare.Controls.Add(errorLabel);
 
-            currentTop += spatiuY;
+            // Update the current top position for the next control
+            currentTop += spatiuY + textBox.Height;
         }
 
         private void AdaugaCampCautare(string labelText, out TextBox textBox, out Button button, int searchLeft, ref int searchTop)
@@ -366,25 +405,45 @@ namespace InterfataUtilizator_WindowsForms
             {
                 try
                 {
+                    // Obținem statutul selectat din radio button-uri
+                    StatutAngajat statutSelectat = StatutAngajat.Ofiter; // Valoare implicită
+                    RadioButton[] radioButtons = { rbSubofiter, rbOfiter, rbPensionar, rbPersonalAdministrativ };
+                    
+                    foreach (var rb in radioButtons)
+                    {
+                        if (rb.Checked)
+                        {
+                            statutSelectat = (StatutAngajat)rb.Tag;
+                            break;
+                        }
+                    }
+
                     Angajat angajatNou = new Angajat(
-                        txtNume.Text,
-                        txtProfesie.Text,
+                        txtNume.Text.Trim(),
+                        txtProfesie.Text.Trim(),
                         int.Parse(txtVechime.Text),
                         DateTime.ParseExact(txtDataNasterii.Text, "dd/MM/yyyy", null),
-                        txtEmail.Text,
-                        (StatutAngajat)Enum.Parse(typeof(StatutAngajat), txtStatut.Text, true)
+                        txtEmail.Text.Trim(),
+                        statutSelectat
                     );
 
-                    adminAngajati.AdaugaAngajat(angajatNou);
-                    MessageBox.Show("Angajat adăugat cu succes!");
-
-                    // Curățare câmpuri
-                    ClearFormFields();
-                    AfiseazaAngajati();
+                    // Save to file
+                    bool salvat = adminAngajati.AdaugaAngajat(angajatNou);
+                    
+                    if (salvat)
+                    {
+                        MessageBox.Show("Angajat adăugat cu succes!");
+                        ClearFormFields();
+                        AfiseazaAngajati();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Eroare la salvarea angajatului!");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Eroare: " + ex.Message);
+                    MessageBox.Show($"Eroare la adăugarea angajatului: {ex.Message}");
                 }
             }
         }
@@ -423,7 +482,11 @@ namespace InterfataUtilizator_WindowsForms
                 lblErrorEmail.Text = "Email invalid!";
             }
 
-            if (!Enum.TryParse(txtStatut.Text, true, out StatutAngajat _))
+            // Verifică dacă un statut a fost selectat
+            bool isStatutSelected = rbSubofiter.Checked || rbOfiter.Checked || 
+                                  rbPensionar.Checked || rbPersonalAdministrativ.Checked;
+
+            if (!isStatutSelected)
             {
                 isValid = false;
                 lblErrorStatut.Text = "Statut invalid!";
@@ -449,7 +512,12 @@ namespace InterfataUtilizator_WindowsForms
             txtVechime.Clear();
             txtDataNasterii.Clear();
             txtEmail.Clear();
-            txtStatut.Clear();
+            
+            // Clear radio button selection
+            rbSubofiter.Checked = false;
+            rbOfiter.Checked = false;
+            rbPensionar.Checked = false;
+            rbPersonalAdministrativ.Checked = false;
         }
 
         private void CautaDupaNume(string numeCautat)
@@ -481,7 +549,6 @@ namespace InterfataUtilizator_WindowsForms
                 return;
             }
 
-            // Add found employees
             for (int i = 0; i < angajatiGasiti.Count; i++)
             {
                 int topPosition = 60 + (i * DIMENSIUNE_PAS_Y);
@@ -496,6 +563,45 @@ namespace InterfataUtilizator_WindowsForms
 
             panelFundal.Height = 60 + (angajatiGasiti.Count * DIMENSIUNE_PAS_Y);
             panelContainerLista.AutoScroll = panelFundal.Height > panelContainerLista.Height;
+        }
+
+        private void CreazaPanouCautare()
+        {
+            // Panel pentru căutare
+            panelCautare = new Panel
+            {
+                BorderStyle = BorderStyle.FixedSingle,
+                Width = LATIME_PANOU,
+                Height = 120,
+                Top = panelAdaugare.Bottom + 20,
+                Left = panelContainerLista.Left,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+            panelPrincipal.Controls.Add(panelCautare);
+
+            // Controale căutare
+            int searchTop = 20;
+            int searchLeft = 100;
+
+            // Câmpuri de căutare
+            AdaugaCampCautare("Caută după nume:", out txtSearchNume, out btnSearchNume, searchLeft, ref searchTop);
+            AdaugaCampCautare("Caută după profesie:", out txtSearchProfesie, out btnSearchProfesie, searchLeft, ref searchTop);
+
+            btnSearchNume.Click += (s, e) => CautaDupaNume(txtSearchNume.Text);
+            btnSearchProfesie.Click += (s, e) => CautaDupaProfesie(txtSearchProfesie.Text);
+
+            // Buton resetare
+            btnResetSearch = new Button
+            {
+                Text = "Resetează căutarea",
+                Top = searchTop + 10,
+                Left = searchLeft,
+                Width = 200,
+                BackColor = Color.LightGray,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnResetSearch.Click += (s, e) => AfiseazaAngajati();
+            panelCautare.Controls.Add(btnResetSearch);
         }
     }
 }
